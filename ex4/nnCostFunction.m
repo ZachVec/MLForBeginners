@@ -26,37 +26,36 @@ Theta2 = reshape(nn_params((1 + (hidden_layer_size * (input_layer_size + 1))):en
 m = size(X, 1);
          
 % You need to return the following variables correctly 
-J = 0;
-Theta1_grad = zeros(size(Theta1)); % 25 x 401
-Theta2_grad = zeros(size(Theta2)); % 10 x 26
+% J = 0;
+% Theta1_grad = zeros(size(Theta1)); % 25 x 401
+% Theta2_grad = zeros(size(Theta2)); % 10 x 26
+train_X = [ones(m, 1) X];
+train_y = zeros(m, num_labels);
 
 % ====================== YOUR CODE HERE ======================
 for t = 1 : m
-    % Set label
-    yt = [zeros(y(t)-1, 1); 1; zeros(num_labels - y(t), 1)];
-    % Forward Propagation
-    a1 = [1; X(t, :)'];     % 401 * 1
-    z2 = Theta1 * a1;       % 25 * 1
-    a2 = [1; sigmoid(z2)];  % 26 * 1
-    hx = sigmoid(Theta2 * a2); % 10 * 1
-    % Accumulate cost without regulation terms
-    J = J - 1/m * (yt' * log(hx) + (1-yt)' * log(1-hx));
-    % Backward Propagation
-    delta3 = hx - yt;       % 10 * 1
-    delta2 = Theta2(:, 2:end)' * delta3 .* sigmoidGradient(z2);  % 25 * 1
-    % Accumulate Derivatives
-    Theta1_grad = Theta1_grad + delta2 * a1';
-    Theta2_grad = Theta2_grad + delta3 * a2';
+    train_y(t, y(t)) = 1;  % Set labels
 end
-% Regularize cost function
-J = J + lambda / (2 * m) * sum(Theta1(:, 2:end).^2, 'all'); % Theta1
-J = J + lambda / (2 * m) * sum(Theta2(:, 2:end).^2, 'all'); % Theta2
-% Calculate final gradient
-Theta1_grad = 1 / m * Theta1_grad;
-Theta2_grad = 1 / m * Theta2_grad;
-% Regularize the gradient
-Theta1_grad(:, 2:end) = Theta1_grad(:, 2:end) + lambda / m * Theta1(:, 2:end);
-Theta2_grad(:, 2:end) = Theta2_grad(:, 2:end) + lambda / m * Theta2(:, 2:end);
+% forward propagation
+hidden_z = train_X * Theta1';
+hidden_a = [ones(m, 1) sigmoid(hidden_z)];  % add bias at first column
+output_a = sigmoid(hidden_a * Theta2');     % output activation
+
+% cost function
+J = - 1 / m * sum(train_y .* log(output_a) + (1-train_y) .* log(1-output_a), 'all');
+J = J + lambda / (2 * m) * sum(Theta1(:, 2:end).^2, 'all'); % regularization
+J = J + lambda / (2 * m) * sum(Theta2(:, 2:end).^2, 'all'); % regularization
+
+% backward propagation
+output_d = output_a - train_y;                                          % output delta
+hidden_d = output_d * Theta2(:, 2:end) .* sigmoidGradient(hidden_z);    % hidden delta
+
+% Calculate the gradient
+Theta1_grad = 1 / m * hidden_d' * train_X;
+Theta2_grad = 1 / m * output_d' * hidden_a;
+Theta1_grad(:, 2:end) = Theta1_grad(:, 2:end) + lambda / m * Theta1(:, 2:end); % regularization
+Theta2_grad(:, 2:end) = Theta2_grad(:, 2:end) + lambda / m * Theta2(:, 2:end); % regularization
+
 % Unroll gradients
 grad = [Theta1_grad(:) ; Theta2_grad(:)];
 end
