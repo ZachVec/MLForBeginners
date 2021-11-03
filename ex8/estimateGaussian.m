@@ -1,4 +1,4 @@
-function [mu sigma2] = estimateGaussian(X)
+function [mu, sigma2] = estimateGaussian(X)
 %ESTIMATEGAUSSIAN This function estimates the parameters of a 
 %Gaussian distribution using the data in X
 %   [mu sigma2] = estimateGaussian(X), 
@@ -8,11 +8,11 @@ function [mu sigma2] = estimateGaussian(X)
 % 
 
 % Useful variables
-[m, n] = size(X);
+m = size(X, 1);
 
 % You should return these values correctly
-mu = zeros(n, 1);
-sigma2 = zeros(n, 1);
+% mu = zeros(n, 1);
+% sigma2 = zeros(n, 1);
 
 % ====================== YOUR CODE HERE ======================
 % Instructions: Compute the mean of the data and the variances
@@ -21,16 +21,7 @@ sigma2 = zeros(n, 1);
 %               should contain variance of the i-th feature.
 %
 
-
-
-
-
-
-
-
-
-
+mu = 1 / m * sum(X, 1)';
+sigma2 = 1 / m * sum((X - mu').^2, 1)';
 % =============================================================
-
-
 end
